@@ -192,7 +192,7 @@ export async function POST(request: Request) {
        VALUES (@territoryCode, @territoryName, @email, @passwordHash, @role, @isActive)`,
       {
         territoryCode: null,
-        territoryName: null,
+        territoryName: fullName || null,
         email,
         passwordHash,
         role,

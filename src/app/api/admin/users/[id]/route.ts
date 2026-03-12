@@ -166,7 +166,7 @@ export async function PATCH(request: NextRequest, context: { params: Promise<{ i
           { code: primaryCode, id: userId }
         );
         if (conflict.length > 0) {
-          await query(`UPDATE Users SET TerritoryCode = NULL, TerritoryName = NULL WHERE ID = @id`, { id: userId });
+          await query(`UPDATE Users SET TerritoryCode = NULL WHERE ID = @id`, { id: userId });
         } else {
           const nameRow = await query<{ Territory: string }>(
             `SELECT TOP 1 Territory FROM ${tblBayi} WHERE TerritoryCode = @code`,
@@ -179,7 +179,7 @@ export async function PATCH(request: NextRequest, context: { params: Promise<{ i
           );
         }
       } else {
-        await query(`UPDATE Users SET TerritoryCode = NULL, TerritoryName = NULL WHERE ID = @id`, { id: userId });
+        await query(`UPDATE Users SET TerritoryCode = NULL WHERE ID = @id`, { id: userId });
       }
     }
 
