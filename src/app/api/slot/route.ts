@@ -113,7 +113,7 @@ export async function POST(request: Request) {
       SELECT TOP 1 *
       FROM ${tblSlot}
       WHERE CustomerCode = @customerCode
-      ORDER BY Date DESC, ID DESC
+      ORDER BY Date DESC
     `, { customerCode });
     const previous = previousRows[0] ?? null;
 
@@ -239,14 +239,16 @@ export async function PUT(request: Request) {
     }
 
     const body = (await request.json()) as SlotPutBody;
-    const { id, customerCode, slotColumn, newValue, date } = body;
+    const { customerCode, slotColumn, newValue, date } = body;
 
     const user = session.user as SessionUserMeta;
     const userId = Number.parseInt(user.id ?? '', 10);
 
     const oldData = await query<{ oldValue: number }>(`
-      SELECT [${slotColumn}] as oldValue FROM ${tblSlot} WHERE ID = @id
-    `, { id });
+      SELECT TOP 1 [${slotColumn}] as oldValue
+      FROM ${tblSlot}
+      WHERE CustomerCode = @customerCode AND Date = @date
+    `, { customerCode, date });
 
     if (oldData.length === 0) {
       return NextResponse.json({ error: 'Kayıt bulunamadı' }, { status: 404 });
@@ -256,10 +258,13 @@ export async function PUT(request: Request) {
 
     const db = await getDb();
     const updateRequest = db.request();
-    updateRequest.input('id', id);
+    updateRequest.input('customerCode', customerCode);
+    updateRequest.input('date', date);
     updateRequest.input('newValue', Number.parseFloat(String(newValue)) || 0);
     await updateRequest.query(`
-      UPDATE ${tblSlot} SET [${slotColumn}] = @newValue WHERE ID = @id
+      UPDATE ${tblSlot}
+      SET [${slotColumn}] = @newValue
+      WHERE CustomerCode = @customerCode AND Date = @date
     `);
 
     await query(`
