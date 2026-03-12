@@ -438,6 +438,7 @@ export default function BayiDetailPage() {
         <AddSlotModal 
           customerCode={params.id as string}
           territory={bayi?.TerritoryCode || ''}
+          lastSlotData={currentData ?? null}
           onClose={() => setShowAddModal(false)}
           onSuccess={() => {
             setShowAddModal(false);
@@ -452,19 +453,38 @@ export default function BayiDetailPage() {
 function AddSlotModal({ 
   customerCode, 
   territory, 
+  lastSlotData,
   onClose, 
   onSuccess 
 }: { 
   customerCode: string; 
   territory: string;
+  lastSlotData: BayiDetailData | null;
   onClose: () => void;
   onSuccess: () => void;
 }) {
   const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState({
+  const initialSlotValues = useMemo(() => {
+    return Object.fromEntries(
+      slotColumns.map((c) => {
+        const raw = lastSlotData?.[c.key as keyof BayiDetailData];
+        const n = typeof raw === 'number' ? raw : Number(raw);
+        return [c.key, Number.isFinite(n) ? n : 0];
+      })
+    ) as Record<string, number>;
+  }, [lastSlotData]);
+
+  const [formData, setFormData] = useState<Record<string, unknown>>(() => ({
     date: new Date().toISOString().split('T')[0],
-    ...Object.fromEntries(slotColumns.map(c => [c.key], 0))
-  });
+    ...initialSlotValues,
+  }));
+
+  useEffect(() => {
+    setFormData((prev) => ({
+      ...prev,
+      ...initialSlotValues,
+    }));
+  }, [initialSlotValues]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -477,7 +497,16 @@ function AddSlotModal({
           customerCode,
           territory,
           date: formData.date,
-          ...formData
+          ...Object.fromEntries(
+            slotColumns
+              .map((c) => {
+                const v = Number(formData[c.key]);
+                const base = initialSlotValues[c.key] ?? 0;
+                return [c.key, Number.isFinite(v) ? v : 0, base] as const;
+              })
+              .filter(([, v, base]) => v !== base)
+              .map(([k, v]) => [k, v])
+          ),
         })
       });
 
@@ -507,7 +536,7 @@ function AddSlotModal({
             <label className="block text-sm font-medium mb-1">Tarih</label>
             <input
               type="date"
-              value={formData.date}
+              value={typeof formData.date === 'string' ? formData.date : ''}
               onChange={(e) => setFormData({ ...formData, date: e.target.value })}
               className="input"
               required
@@ -520,7 +549,7 @@ function AddSlotModal({
                 <label className="block text-xs text-foreground-light mb-1">{col.label}</label>
                 <input
                   type="number"
-                  value={formData[col.key as keyof typeof formData]}
+                  value={Number(formData[col.key]) || 0}
                   onChange={(e) => setFormData({ ...formData, [col.key]: parseFloat(e.target.value) || 0 })}
                   className="input py-2 text-sm"
                   min="0"
