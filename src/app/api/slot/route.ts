@@ -141,7 +141,7 @@ export async function POST(request: Request) {
 
     const insertQuery = `
       INSERT INTO ${tblSlot} (
-        aa, Depo, CustomerCode, CustomerName, Mosaic, Date, MP, Region, Territory, 
+        Depo, CustomerCode, CustomerName, Mosaic, Date, MP, Region, Territory, 
         TerritoryAdı, Zone, [Endüstri _Slot], [J _Firma Slot Sayısı], [B _Firma Slot Sayısı],
         [Total _Pm _Slot _Sayısı], [Total _Top3 _Sku _Slot _Sayısı], [Total_Stratejik_SKU_Slot_Sayısı],
         CHMODENAVY, CHNAVYBRCB, CHNB100RCB, LAB100RCB, LARKBRCB, LM100RCB, LMRCB, MFTB,
@@ -149,7 +149,7 @@ export async function POST(request: Request) {
         MLTBLUE, MLTGRAY, MLTONE, MUABLU, MUARCB, PL100, PLABS100, PLLONGRCB, PLLRC,
         PLMNRCB, PLRC, PLRSVRCB
       ) VALUES (
-        'A', @depo, @customerCode, @customerName, @mosaic, @date, @mp, @region, @territory,
+        @depo, @customerCode, @customerName, @mosaic, @date, @mp, @region, @territory,
         @territoryAdi, @zone, @endustriSlot, @jFirma, @bFirma,
         @totalPm, @totalTop3, @totalStratejik,
         @CHMODENAVY, @CHNAVYBRCB, @CHNB100RCB, @LAB100RCB, @LARKBRCB, @LM100RCB, @LMRCB, @MFTB,
