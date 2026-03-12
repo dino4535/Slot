@@ -80,7 +80,11 @@ export default function LoginPage() {
       });
 
       if (result?.error) {
-        setError(result.error);
+        if (result.error === 'CredentialsSignin') {
+          setError('Giriş başarısız. Kullanıcı pasif olabilir veya şifre yanlış olabilir.');
+        } else {
+          setError(result.error);
+        }
       } else {
         setSuccess(true);
       }
