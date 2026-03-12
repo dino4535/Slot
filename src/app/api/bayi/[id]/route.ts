@@ -50,7 +50,10 @@ export async function GET(
     }
 
     const currentData = await query(`
-      SELECT * FROM vw_BayiSonVeri WHERE CustomerCode = @customerCode
+      SELECT TOP 1 *
+      FROM ${tblSlot}
+      WHERE CustomerCode = @customerCode
+      ORDER BY Date DESC
     `, { customerCode: id });
 
     const history = await query(`

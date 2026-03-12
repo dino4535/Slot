@@ -12,7 +12,8 @@ import {
   ArrowLeft,
   GripVertical,
   RefreshCw,
-  Search
+  Search,
+  Upload
 } from 'lucide-react';
 import Link from 'next/link';
 import {
@@ -68,6 +69,14 @@ type AdminUser = {
 type AdminUsersApiResponse = { users: AdminUser[]; pagination: { page: number; limit: number; total: number; totalPages: number } };
 
 type TerritoryOption = { TerritoryCode: string; Territory: string };
+
+type SlotDataImportResult = {
+  success: true;
+  inserted: number;
+  updated: number;
+  skipped: number;
+  errors: Array<{ row: number; message: string }>;
+};
 
 async function fetchColumns() {
   const res = await fetch('/api/admin/columns?_=' + Date.now(), { cache: 'no-store' });
@@ -188,6 +197,24 @@ async function createUser(body: {
   return res.json();
 }
 
+async function importSlotData(file: File): Promise<SlotDataImportResult> {
+  const form = new FormData();
+  form.append('file', file);
+  const res = await fetch('/api/admin/slot-data/import', { method: 'POST', body: form });
+  const text = await res.text();
+  let data: unknown = null;
+  try {
+    data = text ? (JSON.parse(text) as unknown) : null;
+  } catch {
+    data = null;
+  }
+  if (!res.ok) {
+    const msg = (data as { error?: string } | null)?.error || text || 'Excel yükleme hatası';
+    throw new Error(msg);
+  }
+  return data as SlotDataImportResult;
+}
+
 async function updateUser(id: number, body: Record<string, unknown>) {
   const res = await fetch(`/api/admin/users/${id}`, {
     method: 'PATCH',
@@ -305,7 +332,7 @@ export default function AdminColumnsPage() {
   const [userPage, setUserPage] = useState(1);
   const [localUsers, setLocalUsers] = useState<AdminUser[]>([]);
   const [passwordEdits, setPasswordEdits] = useState<Record<number, string>>({});
-  const [activeTab, setActiveTab] = useState<'users' | 'years' | 'cards' | 'columns'>('users');
+  const [activeTab, setActiveTab] = useState<'users' | 'years' | 'cards' | 'columns' | 'import'>('users');
   const [newUser, setNewUser] = useState({
     fullName: '',
     email: '',
@@ -313,6 +340,9 @@ export default function AdminColumnsPage() {
     role: 'user',
     isActive: true,
   });
+  const [importFile, setImportFile] = useState<File | null>(null);
+  const [importLoading, setImportLoading] = useState(false);
+  const [importResult, setImportResult] = useState<SlotDataImportResult | null>(null);
 
   const { data: columns, isLoading, error } = useQuery<Column[]>({
     queryKey: ['admin-columns', refreshKey],
@@ -548,6 +578,25 @@ export default function AdminColumnsPage() {
     saveYearsMutation.mutate(years);
   };
 
+  const importHandler = async () => {
+    if (!importFile) {
+      toast.error('Excel dosyası seçin');
+      return;
+    }
+    setImportLoading(true);
+    try {
+      const result = await importSlotData(importFile);
+      setImportResult(result);
+      toast.success(`Yüklendi: ${result.inserted} eklendi, ${result.updated} güncellendi`);
+      setRefreshKey(k => k + 1);
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : 'Excel yükleme hatası';
+      toast.error(message);
+    } finally {
+      setImportLoading(false);
+    }
+  };
+
   const updateLocalUser = (id: number, patch: Partial<AdminUser>) => {
     setLocalUsers(prev => prev.map(u => (u.ID === id ? { ...u, ...patch } : u)));
   };
@@ -641,6 +690,15 @@ export default function AdminColumnsPage() {
             >
               Kolonlar
             </button>
+            <button
+              onClick={() => setActiveTab('import')}
+              className={activeTab === 'import' ? 'btn btn-primary' : 'btn btn-secondary'}
+            >
+              <span className="inline-flex items-center gap-2">
+                <Upload className="w-4 h-4" />
+                Sayım Yükleme
+              </span>
+            </button>
           </div>
         </div>
 
@@ -673,6 +731,73 @@ export default function AdminColumnsPage() {
               Kaydet
             </button>
           </div>
+          </div>
+        )}
+
+        {activeTab === 'import' && (
+          <div className="card mb-6">
+            <div className="p-4 border-b border-border">
+              <h2 className="font-semibold">Sayım Excel Yükleme</h2>
+            </div>
+            <div className="p-4 grid grid-cols-1 lg:grid-cols-6 gap-3 items-end">
+              <div className="lg:col-span-4">
+                <label className="text-xs text-foreground-light">Excel Dosyası (.xlsx)</label>
+                <input
+                  type="file"
+                  accept=".xlsx,.xls"
+                  onChange={(e) => {
+                    const f = e.currentTarget.files?.[0] ?? null;
+                    setImportFile(f);
+                    setImportResult(null);
+                  }}
+                  className="input mt-1"
+                />
+              </div>
+              <div className="lg:col-span-2 flex items-center gap-2">
+                <button onClick={importHandler} disabled={importLoading} className="btn btn-primary w-full">
+                  {importLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Upload className="w-4 h-4 mr-2" />}
+                  Yükle
+                </button>
+              </div>
+            </div>
+            {!!importResult && (
+              <div className="p-4 border-t border-border">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
+                  <div className="p-3 rounded bg-gray-50 border border-border">
+                    <div className="text-xs text-foreground-light">Eklendi</div>
+                    <div className="text-lg font-semibold">{importResult.inserted}</div>
+                  </div>
+                  <div className="p-3 rounded bg-gray-50 border border-border">
+                    <div className="text-xs text-foreground-light">Güncellendi</div>
+                    <div className="text-lg font-semibold">{importResult.updated}</div>
+                  </div>
+                  <div className="p-3 rounded bg-gray-50 border border-border">
+                    <div className="text-xs text-foreground-light">Atlandı</div>
+                    <div className="text-lg font-semibold">{importResult.skipped}</div>
+                  </div>
+                </div>
+                {importResult.errors.length > 0 && (
+                  <div className="overflow-x-auto">
+                    <table className="table">
+                      <thead>
+                        <tr>
+                          <th>Satır</th>
+                          <th>Hata</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {importResult.errors.map((er) => (
+                          <tr key={`${er.row}-${er.message}`}>
+                            <td className="font-mono text-sm">{er.row}</td>
+                            <td>{er.message}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         )}
 

@@ -61,6 +61,14 @@ export async function GET(request: Request) {
           MAX(CASE WHEN YEAR(Date) = @targetYear THEN 1 ELSE 0 END) AS HasTargetYear
         FROM ${tblSlot}
         GROUP BY CustomerCode
+      ),
+      latest AS (
+        SELECT
+          CustomerCode,
+          Date,
+          [Total _Pm _Slot _Sayısı],
+          ROW_NUMBER() OVER (PARTITION BY CustomerCode ORDER BY Date DESC) AS rn
+        FROM ${tblSlot}
       )
       SELECT 
         bl.*,
@@ -68,7 +76,7 @@ export async function GET(request: Request) {
         sd.[Total _Pm _Slot _Sayısı] as SonSlot,
         COALESCE(y.HasTargetYear, 0) AS Has2026
       FROM ${tblBayi} bl
-      LEFT JOIN vw_BayiSonVeri sd ON bl.CustomerCode = sd.CustomerCode
+      LEFT JOIN latest sd ON bl.CustomerCode = sd.CustomerCode AND sd.rn = 1
       LEFT JOIN y ON y.CustomerCode = bl.CustomerCode
       ${whereClause}
       ORDER BY bl.CustomerName
