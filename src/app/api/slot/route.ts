@@ -167,7 +167,7 @@ export async function POST(request: Request) {
       territoryAdi: territory,
       region: customerRegion,
       zone: customerZone,
-      depp: depp || 'Salihli',
+      depo: depp || 'Salihli',
       mosaic: mosaic || '',
       mp: mp || false,
       endustriSlot,
