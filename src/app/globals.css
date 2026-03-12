@@ -88,3 +88,129 @@
   from { opacity: 0; transform: translateY(4px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+.login-bg {
+  background: radial-gradient(1200px 800px at 20% 20%, rgba(37, 99, 235, 0.25), transparent 60%),
+    radial-gradient(900px 700px at 80% 35%, rgba(99, 102, 241, 0.22), transparent 55%),
+    radial-gradient(900px 700px at 50% 90%, rgba(14, 165, 233, 0.14), transparent 55%),
+    linear-gradient(135deg, #0f172a, #0b2a66, #0f172a);
+  background-size: 220% 220%;
+  animation: loginGradientShift 18s ease-in-out infinite;
+}
+
+.login-grid {
+  background-image: linear-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.06) 1px, transparent 1px);
+  background-size: 52px 52px;
+  opacity: 0.28;
+  mask-image: radial-gradient(closest-side at 50% 40%, rgba(0, 0, 0, 1), rgba(0, 0, 0, 0));
+  animation: loginGridMove 26s linear infinite;
+}
+
+.login-card {
+  background-color: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(14px);
+}
+
+.login-code {
+  position: absolute;
+  inset: -20% -10% -20% -10%;
+  opacity: 0.09;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 12px;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.7);
+  transform: rotate(-6deg);
+  mask-image: radial-gradient(closest-side at 50% 40%, rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0));
+  overflow: hidden;
+}
+
+.login-code-strong {
+  opacity: 0.26;
+  font-size: 13px;
+  color: rgba(226, 232, 240, 0.92);
+  mask-image: radial-gradient(closest-side at 50% 42%, rgba(0, 0, 0, 1), rgba(0, 0, 0, 0.35));
+  text-shadow: 0 0 10px rgba(56, 189, 248, 0.18);
+}
+
+.login-code-inner {
+  white-space: pre;
+  animation: loginCodeScroll 12s linear infinite;
+}
+
+.powered-chip {
+  position: relative;
+  padding: 12px 16px;
+  border-radius: 14px;
+  background: rgba(15, 23, 42, 0.75);
+  backdrop-filter: blur(10px);
+  overflow: hidden;
+}
+
+.powered-chip::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: linear-gradient(rgba(56, 189, 248, 0.24) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(56, 189, 248, 0.24) 1px, transparent 1px);
+  background-size: 18px 18px;
+  opacity: 0.6;
+}
+
+.powered-chip::after {
+  content: "";
+  position: absolute;
+  inset: -40%;
+  background: radial-gradient(circle at 30% 30%, rgba(59, 130, 246, 0.55), transparent 55%),
+    radial-gradient(circle at 70% 60%, rgba(99, 102, 241, 0.45), transparent 60%);
+  filter: blur(18px);
+  opacity: 0.65;
+  animation: loginGradientShift 14s ease-in-out infinite;
+}
+
+.powered-chip-text {
+  position: relative;
+  z-index: 1;
+  color: rgba(255, 255, 255, 0.92);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.animate-blob-1 { animation: loginBlob 16s ease-in-out infinite; }
+.animate-blob-2 { animation: loginBlob 20s ease-in-out infinite reverse; }
+.animate-blob-3 { animation: loginBlob 24s ease-in-out infinite; }
+
+@keyframes loginGradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes loginGridMove {
+  0% { transform: translate3d(0, 0, 0); }
+  100% { transform: translate3d(-52px, -52px, 0); }
+}
+
+@keyframes loginCodeScroll {
+  0% { transform: translate3d(0, 0, 0); }
+  100% { transform: translate3d(0, -50%, 0); }
+}
+
+@keyframes loginBlob {
+  0% { transform: translate3d(0, 0, 0) scale(1); }
+  33% { transform: translate3d(22px, -18px, 0) scale(1.06); }
+  66% { transform: translate3d(-18px, 18px, 0) scale(0.98); }
+  100% { transform: translate3d(0, 0, 0) scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-fadeIn,
+  .login-bg,
+  .login-grid,
+  .login-code-inner,
+  .animate-blob-1,
+  .animate-blob-2,
+  .animate-blob-3 {
+    animation: none !important;
+  }
+}
